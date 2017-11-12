@@ -14,7 +14,7 @@ def subset_pruned(s, itemsets):
             return True
     return False
 
-def k_itemsets(ksets, data, thres, itemsets):
+def k_itemsets(ksets, data, min_supp, total, itemsets):
     kplus = []
     for family in ksets:
         # family is a list of itemsets with the same k-1 items 
@@ -36,45 +36,42 @@ def k_itemsets(ksets, data, thres, itemsets):
                     # are not among existing large itemsets
                     continue
                 count = count_occurences(s, data)
-                if count >= thres:
+                supp = float(count) / total
+                if supp >= min_supp:
                     # candidate s is frequent enough, include s into itemsets
                     candidates.append(s)
-                    itemsets[tuple(s)] = count
+                    itemsets[tuple(s)] = supp
         # print candidates
         if candidates:
             kplus.append(candidates)
     return kplus
 
-def one_itemsets(data, min_supp, itemsets):
+def single_itemsets(data, min_supp, itemsets):
     sets = []
-    denom = 0 #denominator
+    total = 0 #denominator
     counts = defaultdict(int)
     for trans in data:
-        denom += 1
+        total += 1
         for item in trans:
             counts[item] += 1
 
-    # compute the minimal threshold of counts
-    thres = float(min_supp * denom)
-    t = int(thres)
-    thres = t + 1 if thres > t else t
-
     # filter items that are less frequent
     for item, count in counts.items():
-        if count >= thres:
+        supp = float(count) / total
+        if supp >= min_supp:
             # item should be included
             sets.append([item])
-            itemsets[tuple([item])] = count
+            itemsets[tuple([item])] = supp
 
     # put the list of sorted items in a list and return
     sets.sort() 
     res = [sets] if sets else []
-    return res, thres
+    return res, total
 
 
 def itemsets_apriori(data, min_supp):
     itemsets = {}
-    ksets, thres = one_itemsets(data, min_supp, itemsets)
+    ksets, total = single_itemsets(data, min_supp, itemsets)
     while ksets:
-        ksets = k_itemsets(ksets, data, thres, itemsets)
+        ksets = k_itemsets(ksets, data, min_supp, total, itemsets)
     return itemsets
