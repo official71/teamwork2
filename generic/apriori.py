@@ -15,12 +15,20 @@ def subset_pruned(s, itemsets):
     return False
 
 def k_itemsets(ksets, data, min_supp, total, itemsets):
+    if __debug__:
+        # some work is needed to know how many items the sets currently contain
+        if not ksets or not ksets[0]:
+            dbg_n = 0
+        else:
+            dbg_n = len(ksets[0][0]) + 1
+        print "Generating frequent {}-item itemsets".format(dbg_n)
+        dbg_count = 0
     kplus = []
     for family in ksets:
         # family is a list of itemsets with the same k-1 items 
         # except the k-th (and last) item
-        candidates = []
         while family:
+            candidates = []
             # take the first itemset (root) in family, new candidates are generated 
             # using 'root' + the last element of 'other', where 'other' is each of the 
             # rest of the itemsets in family, e.g.
@@ -41,12 +49,19 @@ def k_itemsets(ksets, data, min_supp, total, itemsets):
                     # candidate s is frequent enough, include s into itemsets
                     candidates.append(s)
                     itemsets[tuple(s)] = supp
-        # print candidates
-        if candidates:
-            kplus.append(candidates)
+            # print candidates
+            if candidates:
+                kplus.append(candidates)
+                if __debug__:
+                    # print "{} new candidates found".format(len(candidates))
+                    dbg_count += len(candidates)
+    if __debug__:
+        print "{}-item itemsets extracted: {}".format(dbg_n, dbg_count)
     return kplus
 
 def single_itemsets(data, min_supp, itemsets):
+    if __debug__:
+        print "Generating frequent 1-item itemsets"
     sets = []
     total = 0 #denominator
     counts = defaultdict(int)
@@ -54,6 +69,8 @@ def single_itemsets(data, min_supp, itemsets):
         total += 1
         for item in trans:
             counts[item] += 1
+    if __debug__:
+        print "Total number of transactions: {}".format(total)
 
     # filter items that are less frequent
     for item, count in counts.items():
@@ -66,6 +83,8 @@ def single_itemsets(data, min_supp, itemsets):
     # put the list of sorted items in a list and return
     sets.sort() 
     res = [sets] if sets else []
+    if __debug__:
+        print "1-item itemsets extracted: {}".format(len(sets))
     return res, total
 
 
