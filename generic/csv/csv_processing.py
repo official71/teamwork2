@@ -42,29 +42,27 @@ class CSVColumn(object):
             print "[{}], {}".format(value, count)
 
 
-    def rename(self):
-        print "Please enter the information of the .py file that contains renaming function:"
-        module = str(raw_input("The name of the file: "))
-        if not module:
-            return
-        try:
-            self.rename_module = importlib.import_module(module)
-        except Exception as e:
-            print "Error loading module {}: {}".format(module, e)
-            return
-
-        fun = str(raw_input("The name of the function: "))
+    def rename(self, rename_module):
+        self.rename_module = rename_module
+        fun = "_".join([w.lower() for w in self.title.split()])
         if not fun:
             return
         try:
-            self.rename_fun = getattr(self.rename_module, fun)
+            self.rename_fun = getattr(rename_module, fun)
         except Exception as e:
-            print "Error loading function {}.{}: {}".format(module, fun, e)
+            print "Error loading function {}.{}: {}".format(rename_module, fun, e)
 
 
 # main function
-def main(csvname):
+def main(csvname, module):
     print "Processing CSV file: {}".format(csvname)
+    rename_module = None
+    if module:
+        try:
+            rename_module = importlib.import_module(module)
+        except Exception as e:
+            print "Error loading module {}: {}".format(module, e)
+            return
     try:
         f = open(csvname, 'r')
     except Exception as e:
@@ -103,9 +101,11 @@ def main(csvname):
         if not yes:
             print "Keeping the column values as they were..."
             continue
-
-        print "Renaming the values..."
-        col.rename()
+        elif not rename_module:
+            print "Cannot rename columns because no module has been specified"
+        else:
+            print "Renaming the values..."
+            col.rename(rename_module)
 
     print "\nWriting the re-formatted CSV"
     with open(csvname + '.reformat', 'w') as wf:
@@ -127,6 +127,7 @@ def main(csvname):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Process original CSV file for Data Mining')
     parser.add_argument('csvname', type=str, help='name of the CSV file that contains data')
-    
+    parser.add_argument('--module', type=str, help='module of renaming functions')
+
     args = vars(parser.parse_args())
     main(**args)

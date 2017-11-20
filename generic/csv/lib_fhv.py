@@ -3,7 +3,7 @@ import re
 def expiration_date(v):
     if not v: return "EXPIRE_NONE"
     [m, d, y] = v.split('/')
-    return "EXPIRE_" + y
+    return "EXPIRE_{}_{}".format(y, m)
 
 def wheelchair_accessible(v):
     if v == "WAV": return "WHEELCHAIR_ACCESS"
