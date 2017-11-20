@@ -27,7 +27,7 @@ class CSVColumn(object):
             print "Too many unique values"
         imax = raw_input("Show all values(Y/N)? or input specific number to show: ")
         if imax.lower() in ('y', 'yes'):
-            imax = float('inf')
+            imax = len(self.value_counter)
         elif imax.lower() in ('n', 'no', ''):
             imax = 0
         else:
@@ -35,10 +35,8 @@ class CSVColumn(object):
                 imax = int(imax)
             except:
                 imax = 0
-        i = 0
-        for value, count in self.value_counter.iteritems():
-            if i >= imax: break
-            i += 1
+
+        for value, count in sorted(self.value_counter.items(), key=lambda x:x[1], reverse=True)[:imax]:
             print "[{}], {}".format(value, count)
 
 
