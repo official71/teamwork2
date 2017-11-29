@@ -42,6 +42,7 @@ def main(csvname, min_supp, min_conf):
             int(supp * 100))
     if i < len(itemsets):
         print "... and more ..."
+    print "Total {}".format(len(itemsets))
 
     # generate association rules
     print "\nGenerating association rules..."
@@ -59,7 +60,7 @@ def main(csvname, min_supp, min_conf):
             int(conf * 100), int(supp * 100))
     if i < len(rules):
         print "... and more ..."
-
+    print "Total {}".format(len(rules))
 
 
 
