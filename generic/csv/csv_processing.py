@@ -37,7 +37,7 @@ class CSVColumn(object):
                 imax = 0
 
         for value, count in sorted(self.value_counter.items(), key=lambda x:x[1], reverse=True)[:imax]:
-            print "[{}], {}".format(value, count)
+            print "[{}], {} ({}%)".format(value, count, format(100*float(count)/self.nr_rows, '.1f'))
 
 
     def rename(self, rename_module):
