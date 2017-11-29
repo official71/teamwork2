@@ -60,14 +60,6 @@ def association_rules(itemsets, min_conf):
     rules = []
     for itemset, numerator in itemsets.items():
         if len(itemset) <= 1: continue
-        # for an itemset containing multiple items, partition it into two 
-        # itemsets (LHS and RHS) and calculate the confidence of (LHS => RHS), 
-        # for example:
-        # itemset = (1,2,3), rules of LHS => RHS are: (1) => (2, 3), 
-        # (2, 3) => (1), (1, 2) => (3), (3) => (1, 2), (1, 3) => (2), 
-        # (2) => (1, 3)
-        # notice that a => b and b => a are not the same; there are 
-        # 2^k - 2 pairs for an itemset of k items
         # assert (in_order(itemset)), "itemset {} not in order".format(itemset)
         rules.extend(generate_pairs(itemsets, min_conf, numerator, itemset))
     rules.sort(reverse=True)
