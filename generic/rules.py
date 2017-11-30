@@ -6,9 +6,13 @@ class AssociationRule(object):
         self.__supp = supp
 
     def __cmp__(self, other):
-        r = cmp(self.__conf, other.__conf)
+        r = cmp(len(self.__rhs), len(other.__rhs))
         if r == 0:
-            r = cmp(self.__supp, other.__supp)
+            r = cmp(len(self.__lhs), len(other.__lhs))
+        if r == 0:
+            r = -cmp(self.__supp, other.__supp)
+        if r == 0:
+            r = -cmp(self.__conf, other.__conf)
         return r
 
     def __str__(self):
@@ -62,5 +66,5 @@ def association_rules(itemsets, min_conf):
         if len(itemset) <= 1: continue
         # assert (in_order(itemset)), "itemset {} not in order".format(itemset)
         rules.extend(generate_pairs(itemsets, min_conf, numerator, itemset))
-    rules.sort(reverse=True)
+    rules.sort()
     return rules

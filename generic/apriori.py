@@ -1,6 +1,7 @@
 from collections import defaultdict
 
 def count_occurences(s, data):
+    if not s: return 0
     s, l = set(s), len(s)
     count = 0
     for trans in data:
