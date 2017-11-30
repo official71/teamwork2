@@ -27,7 +27,7 @@ class DBTable(Base):
     # hours_shift = Column(String)
     residency_requirement = Column(String)
     posting_date = Column(String)
-    # post_until = Column(String)
+    post_until = Column(String)
 
 
 # create engine
@@ -156,7 +156,11 @@ def format_residency_requirement(s):
 def format_posting_date(s):
     try:
         dt = datetime.strptime(s, '%d-%b-%y')
-        return u"POSTED_IN_" + dt.strftime('%Y')
+        if dt.year == 2017:
+            quarter = 1 + (dt.month-1) / 3
+            return u"POSTED_IN_2017_Q{}".format(quarter)
+        else:
+            return u"POSTED_IN_" + dt.strftime('%Y')
     except:
         return u""
 
@@ -168,10 +172,12 @@ def format_post_until(date_from, date_until):
         dtt = datetime.strptime(date_until, '%d-%b-%y')
         # return u"POST_UNTIL_" + dt.strftime('%B_%Y')
         months = (dtt - dtf).days / 30
-        if months <= 6:
-            return u"POST_FOR_LESS_THAN_6_MONTHS"
+        if months <= 1:
+            return u"POST_FOR_ONE_MONTH"
+        elif months <= 12:
+            return u"POST_FOR_{}_MONTHS".format(months)
         else:
-            return u"POST_FOR_MORE_THAN_6_MONTHS"
+            return u"POST_FOR_OVER_ONE_YEAR"
     except:
         return u""
 
@@ -206,7 +212,7 @@ try:
             # 'hours_shift': line[20],
             'residency_requirement': format_residency_requirement(line[23]),
             'posting_date': format_posting_date(line[24]),
-            # 'post_until': format_post_until(line[24], line[25])
+            'post_until': format_post_until(line[24], line[25])
             })
         session.add(record)
     session.commit()
