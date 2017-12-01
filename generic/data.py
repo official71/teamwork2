@@ -22,6 +22,7 @@ class CSVData(object):
                 d = set()
                 for item in line:
                     if not item: continue
+                    item = item.decode('utf-8')
                     i = self.item2id.get(item, None)
                     if i is None:
                         # item does NOT have an associated ID,
@@ -43,5 +44,5 @@ class CSVData(object):
                 print "All {} lines processed".format(dbg_count)
 
     def item_list(self, id_list):
-        return [self.id2item.get(i, None) for i in id_list]
+        return [self.id2item.get(i, None).encode('utf-8') for i in id_list]
 

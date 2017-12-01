@@ -37,7 +37,7 @@ class CSVColumn(object):
                 imax = 0
 
         for value, count in sorted(self.value_counter.items(), key=lambda x:x[1], reverse=True)[:imax]:
-            print "[{}], {} ({}%)".format(value, count, format(100*float(count)/self.nr_rows, '.1f'))
+            print "[{}], {} ({}%)".format(value.encode('utf-8'), count, format(100*float(count)/self.nr_rows, '.1f'))
 
 
     def rename(self, rename_module):
@@ -51,13 +51,28 @@ class CSVColumn(object):
             print "Error loading function {}.{}: {}".format(rename_module, fun, e)
 
 
+def parse_module(module):
+    import re
+    module = re.sub(r'\.py$', '', module)
+
+    items = module.split('/')
+    if not items:
+        return None
+    elif len(items) == 1:
+        return importlib.import_module(module)
+    else:
+        import sys
+        sys.path.append('/'.join(items[:-1]))
+        return importlib.import_module(items[-1])
+
+
 # main function
 def main(csvname, module):
     print "Processing CSV file: {}".format(csvname)
     rename_module = None
     if module:
         try:
-            rename_module = importlib.import_module(module)
+            rename_module = parse_module(module)
         except Exception as e:
             print "Error loading module {}: {}".format(module, e)
             return
@@ -74,7 +89,7 @@ def main(csvname, module):
         columns.append(CSVColumn(title, i))
     for line in reader:
         for i, value in enumerate(line):
-            columns[i].add_one(value)
+            columns[i].add_one(value.decode('utf-8'))
     f.close()
 
     print "\nStatistics of CSV file:"
@@ -115,10 +130,10 @@ def main(csvname, module):
                 values = []
                 for col in reformatted:
                     if col.rename_fun:
-                        values.append(col.rename_fun(line[col.index]))
+                        values.append(col.rename_fun(line[col.index].decode('utf-8')))
                     else:
-                        values.append(line[col.index])
-                writer.writerow([v for v in values if v])
+                        values.append(line[col.index].decode('utf-8'))
+                writer.writerow([v.encode('utf-8') for v in values if v])
 
 
 # main

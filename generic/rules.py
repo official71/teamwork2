@@ -10,9 +10,9 @@ class AssociationRule(object):
         if r == 0:
             r = cmp(len(self.__lhs), len(other.__lhs))
         if r == 0:
-            r = -cmp(self.__supp, other.__supp)
-        if r == 0:
             r = -cmp(self.__conf, other.__conf)
+        if r == 0:
+            r = -cmp(self.__supp, other.__supp)
         return r
 
     def __str__(self):
@@ -39,6 +39,12 @@ def generate_pairs(itemsets, min_conf, numerator, itemset):
     res = []
     for i in xrange(len(itemset)):
         rhs = [itemset[i]]
+        # maybe we should discard the rule if the support (probability) of 
+        # rhs is too high
+        p = itemsets.get(tuple(rhs), 0)
+        if p > min_conf:
+            continue
+        
         lhs = itemset[:i] + itemset[i+1:]
         denominator = itemsets.get(tuple(lhs), 0)
         if lhs and rhs and denominator:

@@ -6,6 +6,8 @@ from data import *
 from apriori import itemsets_apriori
 from rules import association_rules
 
+MAX_PRINTED_LINES = 100
+
 def main(csvname, min_supp, min_conf):
     # validate inputs
     if not csvname or not os.path.isfile(csvname):
@@ -33,15 +35,17 @@ def main(csvname, min_supp, min_conf):
     itemsets = itemsets_apriori(data, min_supp)
     # print large itemsets
     print "\n==Frequent itemsets (min_supp={}%)".format(int(min_supp * 100))
-    i = 0
-    for itemset, supp in sorted(itemsets.items(), key=lambda x:x[1], reverse=True):
-        if i >= 100: break
-        i += 1
-        print "[{}], {}%".format(
-            ",".join([str(item) for item in csvdata.item_list(itemset)]),
-            int(supp * 100))
-    if i < len(itemsets):
-        print "... and more ..."
+    with open(csvname + '.items', 'w') as items_file:
+        i = 0
+        for itemset, supp in sorted(itemsets.items(), key=lambda x:x[1], reverse=True):
+            line = "[{}], {}%".format(
+                ",".join([str(item) for item in csvdata.item_list(itemset)]), 
+                int(supp * 100))
+            items_file.write(line + '\n')
+            i += 1
+            if i <= MAX_PRINTED_LINES: print line
+        if i > MAX_PRINTED_LINES:
+            print "... and more ..."
     print "Total {}".format(len(itemsets))
 
     # generate association rules
@@ -49,17 +53,19 @@ def main(csvname, min_supp, min_conf):
     rules = association_rules(itemsets, min_conf)
     # print association rules
     print "\n==High-confidence association rules (min_conf={}%)".format(int(min_conf * 100))
-    i = 0
-    for rule in rules:
-        if i >= 100: break
-        i += 1
-        lhs, rhs, conf, supp = rule.attr
-        print "[{}] => [{}] (Conf: {}%, Supp: {}%)".format(
-            ",".join([str(item) for item in csvdata.item_list(lhs)]), 
-            ",".join([str(item) for item in csvdata.item_list(rhs)]),
-            int(conf * 100), int(supp * 100))
-    if i < len(rules):
-        print "... and more ..."
+    with open(csvname + '.rules', 'w') as rules_file:
+        i = 0
+        for rule in rules:
+            lhs, rhs, conf, supp = rule.attr
+            line = "[{}] => [{}] (Conf: {}%, Supp: {}%)".format(
+                ",".join(csvdata.item_list(lhs)), 
+                ",".join(csvdata.item_list(rhs)),
+                int(conf * 100), int(supp * 100))
+            rules_file.write(line + '\n')
+            i += 1
+            if i <= MAX_PRINTED_LINES: print line
+        if i > MAX_PRINTED_LINES:
+            print "... and more ..."
     print "Total {}".format(len(rules))
 
 
