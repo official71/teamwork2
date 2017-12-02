@@ -81,8 +81,8 @@ def fun_action(v):
 
 def fun_violation(v):
     if len(v) != 3:
-        v = "N/A"
-    return u"VIOLATION_{}".format(v)
+        return u"VIOLATION_NONE"
+    return u"VIOLATION_{}".format(v[:2])
 
 def fun_critical_flag(v):
     if v == "Critical":
