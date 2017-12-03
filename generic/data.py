@@ -29,7 +29,7 @@ class CSVData(object):
         self.maxid = 0
         self.__construct(csvname)
 
-    """construct member data from original CSV
+    """map data from original CSV into integer ID
     
     Parameters
     ----------
