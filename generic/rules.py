@@ -1,4 +1,21 @@
 class AssociationRule(object):
+    """
+    Association rules: likelihood of RHS items given the LHS items.
+
+    ...
+
+    Attributes
+    ----------
+    lhs : list[int]
+        left-hand-side itemset
+    rhs : list[int]
+        right-hand-side itemset
+    conf : float
+        confidence value of the rule, probability of rhs given lhs
+    supp : float
+        support value of the rule, fraction of transactions that 
+        contain all items in both lhs and rhs
+    """
     def __init__(self, lhs, rhs, conf, supp):
         self.__lhs = lhs
         self.__rhs = rhs
@@ -25,12 +42,29 @@ class AssociationRule(object):
     def attr(self):
         return (self.__lhs, self.__rhs, self.__conf, self.__supp)
 
+"""generate rules out of one itemset (support only single item in RHS)
 
-def generate_pairs(itemsets, min_conf, numerator, itemset):
-    # ONLY SUPPORT SINGLE ITEM IN RHS
-    # calculate the confidence of LHS => RHS, using occurence counts 
+Parameters
+----------
+itemsets : dict{tuple(int):float}
+    key-value pairs of itemsets and their support value
+min_conf : float
+    minimum confidence value that the generated rules must have
+numerator : float
+    the numerator in computing the confidence of the input itemset, i.e. 
+    the support value of itemset in itemsets
+itemset : tuple(int)
+    the itemset where rules are generated from
+
+Returns
+-------
+list[AssociationRule]
+    list of association rules generated
+"""
+def generate_rules(itemsets, min_conf, numerator, itemset):
+    # calculate the confidence of LHS => RHS, using support values stored  
     # in itemsets:
-    # conf(LHS, RHS) = count(LHS U RHS) / count(LHS)
+    # conf(LHS, RHS) = supp(LHS U RHS) / supp(LHS)
     # the numerator is the support value of itemset in itemsets, and 
     # the denominator is the support value of LHS set in itemsets, which 
     # must exist in itemsets because of the nature of large itemsets: 
@@ -39,12 +73,14 @@ def generate_pairs(itemsets, min_conf, numerator, itemset):
     res = []
     for i in xrange(len(itemset)):
         rhs = [itemset[i]]
-        # maybe we should discard the rule if the support (probability) of 
-        # rhs is too high
+        # perhaps we should discard the rule if the support of RHS is too 
+        # high, e.g. if the RHS item has support value 0.9, any rule that 
+        # leads to the item will likely to have a very high confidence, 
+        # and it somehow makes the rule useless
         p = itemsets.get(tuple(rhs), 0)
         if p > min_conf:
             continue
-        
+
         lhs = itemset[:i] + itemset[i+1:]
         denominator = itemsets.get(tuple(lhs), 0)
         if lhs and rhs and denominator:
@@ -53,24 +89,28 @@ def generate_pairs(itemsets, min_conf, numerator, itemset):
                 res.append(AssociationRule(lhs, rhs, conf, numerator))
     return res
 
-def in_order(s):
-    order = 0
-    for i in xrange(1, len(s)):
-        if order == 0:
-            order = cmp(s[i], s[i-1])
-        else:
-            t = cmp(s[i], s[i-1])
-            if t != 0 and t != order:
-                return False
-    return True
+"""generate all association rules (support only single item in RHS)
 
-# assume items in each itemset are sorted
+Parameters
+----------
+itemsets : dict{tuple(int):float}
+    key-value pairs of itemsets and their support value
+min_conf : float
+    minimum confidence value that the generated rules must have
+
+Returns
+-------
+list[AssociationRule]
+    list of association rules generated, sorted in the order:
+    - rules with smaller number of items are favored
+    - higher confidence value
+    - higher support value
+"""
 def association_rules(itemsets, min_conf):
     min_conf = float(min_conf)
     rules = []
     for itemset, numerator in itemsets.items():
         if len(itemset) <= 1: continue
-        # assert (in_order(itemset)), "itemset {} not in order".format(itemset)
-        rules.extend(generate_pairs(itemsets, min_conf, numerator, itemset))
+        rules.extend(generate_rules(itemsets, min_conf, numerator, itemset))
     rules.sort()
     return rules
