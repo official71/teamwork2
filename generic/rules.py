@@ -101,10 +101,6 @@ min_conf : float
 Returns
 -------
 list[AssociationRule]
-    list of association rules generated, sorted in the order:
-    - rules with smaller number of items are favored
-    - higher confidence value
-    - higher support value
 """
 def association_rules(itemsets, min_conf):
     min_conf = float(min_conf)
@@ -112,5 +108,5 @@ def association_rules(itemsets, min_conf):
     for itemset, numerator in itemsets.items():
         if len(itemset) <= 1: continue
         rules.extend(generate_rules(itemsets, min_conf, numerator, itemset))
-    rules.sort()
+    # rules.sort()
     return rules

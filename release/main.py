@@ -6,8 +6,6 @@ from data import *
 from apriori import itemsets_apriori
 from rules import association_rules
 
-MAX_PRINTED_ITEMS = 100
-MAX_PRINTED_RULES = 10000
 
 """main function
 Parameters
@@ -41,43 +39,35 @@ def main(csvname, min_supp, min_conf):
     csvdata = CSVData(csvname)
     data = csvdata.data
 
-    # generate large itemsets using the Apriori algorithm
-    print "\nGenerating large itemsets using Apriori algorithm..."
-    itemsets = itemsets_apriori(data, min_supp)
-    # print and dump to file the large(frequent) itemsets
-    print "\n==Frequent itemsets (min_supp={}%)".format(int(min_supp * 100))
-    with open(csvname + '.items', 'w') as items_file:
-        count = 0
+    # compute rules and dump output to file
+    outname = "output.txt"
+    with open(outname, "w") as outfile:
+        # generate large itemsets using the Apriori algorithm
+        print "\nGenerating large itemsets using Apriori algorithm..."
+        itemsets = itemsets_apriori(data, min_supp)
+        # print and dump to file the large(frequent) itemsets
+        outfile.write("==Frequent itemsets (min_supp=%.2f%%)\n" % (min_supp * 100))
         for itemset, supp in sorted(itemsets.items(), key=lambda x:x[1], reverse=True):
-            line = "[{}], {}%".format(
-                ",".join([str(item) for item in csvdata.item_list(itemset)]), 
-                int(supp * 100))
-            items_file.write(line + '\n')
-            count += 1
-            if count <= MAX_PRINTED_ITEMS: print line
-        if count > MAX_PRINTED_ITEMS:
-            print "... and more ..."
-    print "Total {}".format(len(itemsets))
+            line = "[ %s ], %.2f%%\n" % (
+                " , ".join([str(item) for item in csvdata.item_list(itemset)]), 
+                supp * 100)
+            outfile.write(line)
+        print "Found %d larger itemsets." % (len(itemsets))
 
-    # generate association rules
-    print "\nGenerating association rules..."
-    rules = association_rules(itemsets, min_conf)
-    # print and dump to file the association rules
-    print "\n==High-confidence association rules (min_conf={}%)".format(int(min_conf * 100))
-    with open(csvname + '.rules', 'w') as rules_file:
-        count = 0
-        for rule in rules:
+        # generate association rules
+        print "\nGenerating association rules..."
+        rules = association_rules(itemsets, min_conf)
+        # print and dump to file the association rules
+        outfile.write("\n\n==High-confidence association rules (min_conf=%.2f%%)\n" % (min_conf * 100))
+        for rule in sorted(rules, key=lambda x:x.attr[2], reverse=True):
             lhs, rhs, conf, supp = rule.attr
-            line = "[{}] => [{}] (Conf: {}%, Supp: {}%)".format(
-                ",".join(csvdata.item_list(lhs)), 
-                ",".join(csvdata.item_list(rhs)),
-                int(conf * 100), int(supp * 100))
-            rules_file.write(line + '\n')
-            count += 1
-            if count <= MAX_PRINTED_RULES: print line
-        if count > MAX_PRINTED_RULES:
-            print "... and more ..."
-    print "Total {}".format(len(rules))
+            line = "[ %s ] => [ %s ] (Conf: %.2f%%, Supp: %.2f%%)\n" % (
+                " , ".join(csvdata.item_list(lhs)), 
+                " , ".join(csvdata.item_list(rhs)),
+                conf * 100, supp * 100)
+            outfile.write(line)
+        print "Found %d association rules." % (len(rules))
+        print "Refer to %s for detailed outputs. Exiting..." % (outname)
 
 
 
