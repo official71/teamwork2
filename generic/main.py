@@ -6,8 +6,18 @@ from data import *
 from apriori import itemsets_apriori
 from rules import association_rules
 
-MAX_PRINTED_LINES = 100
+MAX_PRINTED_LINES = 10000
 
+"""main function
+Parameters
+----------
+csvname : str
+    name of the CSV file containing integrated data
+min_supp : float
+    minimum support value
+min_conf : float
+    minimum confidence value
+"""
 def main(csvname, min_supp, min_conf):
     # validate inputs
     if not csvname or not os.path.isfile(csvname):
@@ -33,28 +43,28 @@ def main(csvname, min_supp, min_conf):
     # generate large itemsets using the Apriori algorithm
     print "\nGenerating large itemsets using Apriori algorithm..."
     itemsets = itemsets_apriori(data, min_supp)
-    # print large itemsets
+    # print and dump to file the large(frequent) itemsets
     print "\n==Frequent itemsets (min_supp={}%)".format(int(min_supp * 100))
     with open(csvname + '.items', 'w') as items_file:
-        i = 0
+        count = 0
         for itemset, supp in sorted(itemsets.items(), key=lambda x:x[1], reverse=True):
             line = "[{}], {}%".format(
                 ",".join([str(item) for item in csvdata.item_list(itemset)]), 
                 int(supp * 100))
             items_file.write(line + '\n')
-            i += 1
-            if i <= MAX_PRINTED_LINES: print line
-        if i > MAX_PRINTED_LINES:
+            count += 1
+            if count <= MAX_PRINTED_LINES: print line
+        if count > MAX_PRINTED_LINES:
             print "... and more ..."
     print "Total {}".format(len(itemsets))
 
     # generate association rules
     print "\nGenerating association rules..."
     rules = association_rules(itemsets, min_conf)
-    # print association rules
+    # print and dump to file the association rules
     print "\n==High-confidence association rules (min_conf={}%)".format(int(min_conf * 100))
     with open(csvname + '.rules', 'w') as rules_file:
-        i = 0
+        count = 0
         for rule in rules:
             lhs, rhs, conf, supp = rule.attr
             line = "[{}] => [{}] (Conf: {}%, Supp: {}%)".format(
@@ -62,20 +72,20 @@ def main(csvname, min_supp, min_conf):
                 ",".join(csvdata.item_list(rhs)),
                 int(conf * 100), int(supp * 100))
             rules_file.write(line + '\n')
-            i += 1
-            if i <= MAX_PRINTED_LINES: print line
-        if i > MAX_PRINTED_LINES:
+            count += 1
+            if count <= MAX_PRINTED_LINES: print line
+        if count > MAX_PRINTED_LINES:
             print "... and more ..."
     print "Total {}".format(len(rules))
 
 
 
-# main
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Data Mining using Apriori algorithm')
     parser.add_argument('csvname', type=str, help='name of the CSV file that contains data')
-    parser.add_argument('min_supp', type=float, help='minimal support percentage')
-    parser.add_argument('min_conf', type=float, help='minimal confidence percentage')
+    parser.add_argument('min_supp', type=float, help='minimal support value (range 0 to 1)')
+    parser.add_argument('min_conf', type=float, help='minimal confidence value (range 0 to 1)')
 
     args = vars(parser.parse_args())
     main(**args)

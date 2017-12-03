@@ -1,21 +1,80 @@
 from collections import defaultdict
 
-def count_occurences(s, data):
-    if not s: return 0
-    s, l = set(s), len(s)
+"""count the number of occurrences (support) of given itemset
+
+Parameters
+----------
+candidate : list[int]
+    candidate itemset
+data : list[set(int)]
+    list of transactions
+
+Returns
+-------
+int
+"""
+def count_occurences(candidate, data):
+    if not candidate: return 0
+    candidate, l = set(candidate), len(candidate)
     count = 0
-    for trans in data:
-        if len(s - trans) == 0:
+    for transaction in data:
+        if len(candidate - transaction) == 0:
+            # number of items that are in the candidate itemset but missing 
+            # in the transaction is 0 => the transaction "support" this itemset
             count += 1
     return count
 
-def subset_pruned(s, itemsets):
-    for i in xrange(len(s)):
-        if not tuple(s[:i] + s[i+1:]) in itemsets:
+"""prune unlikely itemset
+Reference: 2.1.1 of Rakesh's paper - the "prune-step"
+Returns True (pruned) if any of the (k-1)-subsets of the k-itemset is NOT 
+a large itemset
+
+Parameters
+----------
+candidate : list[int]
+    candidate itemset
+itemsets : dict{tuple(int):float}
+    known large itemsets
+
+Returns
+-------
+boolean
+    True if pruned; False if not pruned
+"""
+def subset_pruned(candidate, itemsets):
+    for i in xrange(len(candidate)):
+        if not tuple(candidate[:i] + candidate[i+1:]) in itemsets:
             return True
     return False
 
-def k_itemsets(ksets, data, min_supp, total, itemsets):
+"""Apriori candidate generation function of (k+1)-itemsets given k-itemsets
+Reference: 2.1.1 of Rakesh's paper - the "apriori-gen" function
+
+Parameters
+----------
+ksets : list[list[list[int]]]
+    the k-itemsets from previous iteration, containing all the "families" 
+    of itemsets with k number of items. A family of itemsets consist of the 
+    same set of items except for the last one, e.g.
+    [
+    [[1,2,3],[1,2,4],[1,2,7]],
+    [[2,5,6],[2,5,7]]
+    ]
+data : list[set(int)]
+    list of transactions, each transaction is a set of integer items
+min_supp: float
+    minimum support value for an itemset to be "large"
+total : int
+    total number of transactions, used for computing support values
+itemsets: dict{tuple(int):float}
+    containing final results: large itemsets and their support values
+
+Returns
+-------
+kplus : list[list[list[int]]]
+    (k+1)-itemsets generated
+"""
+def apriori_gen_k_itemsets(ksets, data, min_supp, total, itemsets):
     if __debug__:
         # some work is needed to know how many items the sets currently contain
         if not ksets or not ksets[0]:
@@ -24,7 +83,7 @@ def k_itemsets(ksets, data, min_supp, total, itemsets):
             dbg_n = len(ksets[0][0]) + 1
         print "Generating frequent {}-item itemsets".format(dbg_n)
         dbg_count = 0
-    kplus = []
+    kplus = [] # the (k+1)-itemsets
     for family in ksets:
         # family is a list of itemsets with the same k-1 items 
         # except the k-th (and last) item
@@ -39,17 +98,17 @@ def k_itemsets(ksets, data, min_supp, total, itemsets):
             # root = [1,2,5], no more candidates as it is the last one
             root = family.pop(0)
             for other in family:
-                s = root + other[-1:]
-                if subset_pruned(s, itemsets):
-                    # candidate s is pruned because one or more of its subsets 
+                candidate = root + other[-1:]
+                if subset_pruned(candidate, itemsets):
+                    # candidate is pruned because one or more of its subsets 
                     # are not among existing large itemsets
                     continue
-                count = count_occurences(s, data)
+                count = count_occurences(candidate, data)
                 supp = float(count) / total
                 if supp >= min_supp:
-                    # candidate s is frequent enough, include s into itemsets
-                    candidates.append(s)
-                    itemsets[tuple(s)] = supp
+                    # candidate is frequent enough, include it into itemsets
+                    candidates.append(candidate)
+                    itemsets[tuple(candidate)] = supp
             # print candidates
             if candidates:
                 kplus.append(candidates)
@@ -60,10 +119,30 @@ def k_itemsets(ksets, data, min_supp, total, itemsets):
         print "{}-item itemsets extracted: {}".format(dbg_n, dbg_count)
     return kplus
 
-def single_itemsets(data, min_supp, itemsets):
+"""Apriori candidate generation function of single-item itemsets
+Reference: Chapter 2.1.1 of Rakesh's paper - the "apriori-gen" function
+
+Parameters
+----------
+data : list[set(int)]
+    list of transactions, each transaction is a set of integer items
+min_supp: float
+    minimum support value for an itemset to be "large"
+itemsets: dict{tuple(int):float}
+    containing final results: large itemsets and their support values
+
+Returns
+-------
+res : list[list[list[int]]]
+    all k-itemsets, k is the size of itemsets in the current iteration, 
+    in this case k = 1
+total : int
+    total number of transactions
+"""
+def apriori_gen_single_itemsets(data, min_supp, itemsets):
     if __debug__:
         print "Generating frequent 1-item itemsets"
-    sets = []
+    candidates = []
     total = 0 #denominator
     counts = defaultdict(int)
     for trans in data:
@@ -78,20 +157,37 @@ def single_itemsets(data, min_supp, itemsets):
         supp = float(count) / total
         if supp >= min_supp:
             # item should be included
-            sets.append([item])
+            candidates.append([item])
             itemsets[tuple([item])] = supp
 
-    # put the list of sorted items in a list and return
-    sets.sort() 
-    res = [sets] if sets else []
+    # if 1-itemsets are sorted, the algorithm ensures that all itemsets 
+    # generated in following iterations are all sorted internally
+    candidates.sort() 
+    res = [candidates] if candidates else []
     if __debug__:
-        print "1-item itemsets extracted: {}".format(len(sets))
+        print "1-item itemsets extracted: {}".format(len(candidates))
     return res, total
 
+"""generate large(frequent) itemsets using Apriori algorithm
+Reference: Fast Algorithms for Mining Association Rules by Rakesh et al.
+(http://www.cs.columbia.edu/%7Egravano/Qual/Papers/agrawal94.pdf)
 
+Parameters
+----------
+data : list[set(int)]
+    list of transactions, each transaction is a set of integer items
+min_supp: float
+    minimum support value for an itemset to be "large"
+
+Returns
+-------
+itemsets : dict{tuple(int):float}
+    key-value pairs of large itemsets (tuple of integers) and their support 
+    value in the data
+"""
 def itemsets_apriori(data, min_supp):
     itemsets = {}
-    ksets, total = single_itemsets(data, min_supp, itemsets)
+    ksets, total = apriori_gen_single_itemsets(data, min_supp, itemsets)
     while ksets:
-        ksets = k_itemsets(ksets, data, min_supp, total, itemsets)
+        ksets = apriori_gen_k_itemsets(ksets, data, min_supp, total, itemsets)
     return itemsets
