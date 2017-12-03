@@ -6,7 +6,8 @@ from data import *
 from apriori import itemsets_apriori
 from rules import association_rules
 
-MAX_PRINTED_LINES = 10000
+MAX_PRINTED_ITEMS = 100
+MAX_PRINTED_RULES = 10000
 
 """main function
 Parameters
@@ -28,7 +29,7 @@ def main(csvname, min_supp, min_conf):
         raise ValueError("[ERROR] Invalid confidence value: {}".format(min_conf))
 
     if __debug__:
-        print "====== ASSOCIATION RULES (DEBUG MODE)======"
+        print "====== ASSOCIATION RULES (DEBUG MODE) ======"
     else:
         print "====== ASSOCIATION RULES ======"
     print "Input CSV file ----- {}".format(csvname)
@@ -53,8 +54,8 @@ def main(csvname, min_supp, min_conf):
                 int(supp * 100))
             items_file.write(line + '\n')
             count += 1
-            if count <= MAX_PRINTED_LINES: print line
-        if count > MAX_PRINTED_LINES:
+            if count <= MAX_PRINTED_ITEMS: print line
+        if count > MAX_PRINTED_ITEMS:
             print "... and more ..."
     print "Total {}".format(len(itemsets))
 
@@ -73,8 +74,8 @@ def main(csvname, min_supp, min_conf):
                 int(conf * 100), int(supp * 100))
             rules_file.write(line + '\n')
             count += 1
-            if count <= MAX_PRINTED_LINES: print line
-        if count > MAX_PRINTED_LINES:
+            if count <= MAX_PRINTED_RULES: print line
+        if count > MAX_PRINTED_RULES:
             print "... and more ..."
     print "Total {}".format(len(rules))
 
