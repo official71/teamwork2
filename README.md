@@ -74,7 +74,7 @@ Columns with redundant or over-specific information are discarded for simplicity
 
 ## Sample run
 
-* For a compelling sample run, run `python main.py INTEGRATED-DATASET.csv 0.05 0.6` in Bash. The minimum support and confidence are 5% and 60% respectively.
+* For a compelling sample run, run `python main.py INTEGRATED-DATASET.csv 0.05 0.6` in Bash, where the minimum support and confidence are 5% and 60% respectively.
 * Some rules of interest:
     * Almost every Grade B is assigned during a re-inspection (unannounced visit if the initial inspection failed to grade an A). There is a good chance (78%) that a re-inspection could result in a Grade A.
 
@@ -83,7 +83,7 @@ Columns with redundant or over-specific information are discarded for simplicity
     [ RE-INSPECTION ] => [ GRADE_A ] (Conf: 77.59%, Supp: 24.97%)
     ```
 
-    * A Restaurant that violated 04L is also likely (85%) to violate 08A, and if this is the initial inspection then there is a high probability (80%) that it will get a Grade C (the unconditional probability of getting Grade C is 35%). According to the [violation codes](http://www1.nyc.gov/assets/doh/downloads/pdf/rii/blue-book.pdf), 04L stands for critical violation of "Evidence of mice or live mice present in facility's food and/or non-food areas", and 08A for non-critical violation of "Facility not vermin proof. Harborage or conditions conducive to attracting vermin to the premises and/or allowing vermin to exist"
+    * A Restaurant that violated 04L is also likely (85%) to violate 08A, and if this is the initial inspection then there is a high probability (80%) that it will get a Grade C (the unconditional probability of getting Grade C is 35%). According to the [violation codes](http://www1.nyc.gov/assets/doh/downloads/pdf/rii/blue-book.pdf), 04L stands for critical violation of *"Evidence of mice or live mice present in facility's food and/or non-food areas"*, and 08A for non-critical violation of *"Facility not vermin proof. Harborage or conditions conducive to attracting vermin to the premises and/or allowing vermin to exist"*
 
     ```
     [ VIOLATION_04L_CRITICAL ] => [ VIOLATION_08A_NON_CRITICAL ] (Conf: 84.52%, Supp: 16.93%)
